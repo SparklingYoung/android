@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">LowPoly</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="gallery">相册</string>
+    <string name="camera">相机</string>
+
+    <string name="low_poly_it">LowPolyIt</string>
+    <string name="title_activity_share">Share</string>
+</resources>
