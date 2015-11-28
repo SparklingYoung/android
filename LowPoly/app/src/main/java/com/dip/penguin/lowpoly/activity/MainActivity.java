@@ -52,7 +52,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
     @Override
     protected void onResume() {
         super.onResume();
-        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_11,getApplicationContext(),mLoaderCallback);
+        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0,getApplicationContext(),mLoaderCallback);
     }
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
