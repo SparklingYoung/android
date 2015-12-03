@@ -7,4 +7,9 @@
 
     <string name="low_poly_it">LowPolyIt</string>
     <string name="title_activity_share">Share</string>
+
+    <!-- DialogSave -->
+    <string name="dialog_save">save ?</string>
+    <string name="dialog_button_yes">yes</string>
+    <string name="dialog_button_no">no</string>
 </resources>

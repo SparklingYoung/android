@@ -1,6 +1,8 @@
 package com.dip.penguin.lowpoly.activity;
 
 import android.app.Activity;
+import android.app.ActivityManager;
+import android.app.FragmentManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
@@ -8,11 +10,15 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.dip.penguin.lowpoly.R;
 import com.dip.penguin.lowpoly.constant.Constants;
 import com.dip.penguin.lowpoly.utils.Utils;
+import com.dip.penguin.lowpoly.view.DialogSave;
 
+import org.opencv.android.BaseLoaderCallback;
+import org.opencv.android.OpenCVLoader;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfFloat6;
@@ -23,8 +29,15 @@ import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.imgproc.Subdiv2D;
 
-public class LowPolyIt extends Activity implements View.OnClickListener{
-    private Bitmap bmpSrc;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+
+public class LowPolyIt extends Activity implements View.OnClickListener,DialogSave.OnDialogSaveListener{
+    private Bitmap bmpSrc, bmpDst;
     private Uri uriSrc;
     private ImageView imgViewSrc;
     private boolean mark = false;//标记图片是否已经进行lowpoly处理
@@ -36,6 +49,42 @@ public class LowPolyIt extends Activity implements View.OnClickListener{
         setContentView(R.layout.activity_low_poly_it);
 
         initView();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, getApplicationContext(), mLoaderCallback);
+    }
+
+    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
+        @Override
+        public void onManagerConnected(int status) {
+            switch (status){
+                case BaseLoaderCallback.SUCCESS:
+                    Log.i(Constants.OPENCV_LOAD_TAG,"openCV成功加载");
+                    break;
+                default:
+                    break;
+            }
+        }
+    };
+
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.img_Image:
+                if (!mark){
+                    lowPolyIt();
+                    mark = true;
+                }else{
+                    save();
+                }
+                break;
+            default:
+                break;
+        }
     }
 
     private void initView(){
@@ -61,24 +110,11 @@ public class LowPolyIt extends Activity implements View.OnClickListener{
         }
     }
 
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()){
-            case R.id.img_Image:
-                if (!mark){
-                    lowPolyIt();
-                    mark = true;
-                }
-                break;
-            default:
-                break;
-        }
-    }
+
+
 
     //将图片转换成lowPoly风格
     private void lowPolyIt(){
-        Bitmap bmpDst;
-
         //将图像从bitmap格式转换为mat格式
         Mat matRGB = new Mat();
         matRGB = Utils.changeBitmap2Mat(bmpSrc);
@@ -95,6 +131,7 @@ public class LowPolyIt extends Activity implements View.OnClickListener{
         bmpDst = Utils.mat2Bitmap(matDst);
         imgViewSrc.setImageBitmap(bmpDst);
     }
+
 
     //德洛内算法
     private Mat deluany(Mat matRGB, Mat matEdge) {
@@ -169,6 +206,7 @@ public class LowPolyIt extends Activity implements View.OnClickListener{
         //得到三角形列表
         subdiv.getTriangleList(triList);
 
+
         //绘制三角形
         for (int i = 0; i < triList.size().height; i++) {
             triList.get(i, 0, fGet);
@@ -176,9 +214,18 @@ public class LowPolyIt extends Activity implements View.OnClickListener{
             pts[1] = new Point(fGet[2], fGet[3]);
             pts[2] = new Point(fGet[4], fGet[5]);
 
-            //选取重心颜色
+            //选取重心颜色，若重心坐标不在mat区域内，将其修改为区域内值
             centreOfGravity = new Point((fGet[0] + fGet[2] + fGet[4]) / 3, (fGet[1] + fGet[3] + fGet[5]) / 3);
-            matRGB.get((int) centreOfGravity.y, (int) centreOfGravity.x, bGets);
+            int x, y;
+            x = (int)centreOfGravity.x;
+            y = (int)centreOfGravity.y;
+            if (centreOfGravity.x < 0) x = 0;
+            if (centreOfGravity.x >= cols) x = cols - 1;
+            if (centreOfGravity.y < 0) y = 0;
+            if (centreOfGravity.y >= rows) y = rows - 1;
+
+            matRGB.get(y, x, bGets);
+
             B = Utils.getUnsignedByte(bGets[0]);
             G = Utils.getUnsignedByte(bGets[1]);
             R = Utils.getUnsignedByte(bGets[2]);
@@ -192,4 +239,58 @@ public class LowPolyIt extends Activity implements View.OnClickListener{
         return matDst;
     }
 
+
+    //保存lowpoly图片
+    private void save(){
+        DialogSave dialogSave = new DialogSave();
+        dialogSave.show(getFragmentManager(), "dialogSave");
+    }
+
+
+    //将lowpoly图片保存至指定目录
+    @Override
+    public void onDialogSave() {
+        File imageStorageDir = Constants.FILE_DIR;
+
+        //如果该存储路径不存在则创建该路径
+        if (!imageStorageDir.exists()){
+            if (!imageStorageDir.mkdirs()){
+                Log.d(Constants.TAG_CAMERA,"failed to create directory");
+                return ;
+            }
+        }
+
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        File imageFile = new File(imageStorageDir.getPath() + File.separator + timeStamp + ".jpg");
+        try {
+            imageFile.createNewFile();
+            FileOutputStream fos = new FileOutputStream(imageFile);
+            bmpDst.compress(Bitmap.CompressFormat.JPEG,50,fos);
+            fos.flush();
+            fos.close();;
+        }catch (IOException e){
+            e.printStackTrace();
+        }
+
+        Toast.makeText(LowPolyIt.this,"The image has saved into " + Constants.FILE_DIR,Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
+
+
+
+    //获取内存
+    private void displayBriefMemory(String tag)
+    {
+        final ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+        ActivityManager.MemoryInfo info = new ActivityManager.MemoryInfo();
+        activityManager.getMemoryInfo(info);
+
+        Log.e(tag, "系统剩余内存:" + (info.availMem >> 10) + "k");
+        Log.e(tag,"系统是否处于低内存运行："+info.lowMemory);
+        Log.e(tag,"当系统剩余内存低于"+info.threshold+"时就看成低内存运行");
+    }
 }

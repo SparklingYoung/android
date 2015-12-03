@@ -1,6 +1,8 @@
 package com.dip.penguin.lowpoly.utils;
 
+import android.app.ActivityManager;
 import android.graphics.Bitmap;
+import android.util.Log;
 
 import org.opencv.core.Mat;
 import org.opencv.imgproc.Imgproc;
@@ -61,5 +63,6 @@ public class Utils {
     public static int getUnsignedByte(byte data){
         return data&0x0FF;
     }
+
 
 }

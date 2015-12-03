@@ -25,12 +25,9 @@ import java.util.Date;
 
 
 public class MainActivity extends Activity implements View.OnClickListener{
-    private String TAG = "OPENCV_SUCCESS";
-    private static String TAG_CAMERA = "LowPolyCamera";
     private static final int CODE_CAMERA = 100;
     private static final int CODE_GALLERY = 101;
     private Uri uriCamera;
-    private Uri uriGallery;
     private ImageView btnGallery = null;
     private ImageView btnCamera = null;
 
@@ -60,7 +57,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
         public void onManagerConnected(int status) {
             switch (status){
                 case BaseLoaderCallback.SUCCESS:
-                    Log.i(TAG,"openCV成功加载");
+                    Log.i(Constants.OPENCV_LOAD_TAG,"openCV成功加载");
                     break;
                 default:
                     break;
@@ -105,7 +102,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
         //创建存储图片路径
         uriCamera = getOutputImageFileUri();
         if (uriCamera == null) {
-            Log.d(TAG_CAMERA,"failed to take a picture");
+            Log.d(Constants.TAG_CAMERA,"failed to take a picture");
             return ;
         }
         //设置图片存储路径
@@ -140,13 +137,14 @@ public class MainActivity extends Activity implements View.OnClickListener{
     private  static Uri getOutputImageFileUri(){
 
         //在指定的路径创建MyLowPolyCamera文件
-        File imageStorageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
-                TAG_CAMERA);
+//        File imageStorageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES),
+//                TAG_CAMERA);
+        File imageStorageDir = Constants.FILE_DIR;
 
         //如果该存储路径不存在则创建该路径
         if (!imageStorageDir.exists()){
             if (!imageStorageDir.mkdirs()){
-                Log.d(TAG_CAMERA,"failed to create directory");
+                Log.d(Constants.TAG_CAMERA,"failed to create directory");
                 return null;
             }
         }
