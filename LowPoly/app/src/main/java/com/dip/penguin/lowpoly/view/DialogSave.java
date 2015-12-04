@@ -22,6 +22,7 @@ public class DialogSave extends DialogFragment {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         dismiss();
+                        getActivity().finish();
                     }
                 }).setPositiveButton(R.string.dialog_button_yes, new DialogInterface.OnClickListener() {
             @Override

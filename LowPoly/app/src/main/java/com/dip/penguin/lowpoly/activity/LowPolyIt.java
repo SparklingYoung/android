@@ -267,12 +267,13 @@ public class LowPolyIt extends Activity implements View.OnClickListener,DialogSa
             FileOutputStream fos = new FileOutputStream(imageFile);
             bmpDst.compress(Bitmap.CompressFormat.JPEG,50,fos);
             fos.flush();
-            fos.close();;
+            fos.close();
         }catch (IOException e){
             e.printStackTrace();
         }
 
-        Toast.makeText(LowPolyIt.this,"The image has saved into " + Constants.FILE_DIR,Toast.LENGTH_SHORT).show();
+        Toast.makeText(LowPolyIt.this,"The image has saved into " + Constants.FILE_DIR,Toast.LENGTH_LONG).show();
+        finish();
     }
 
     @Override
