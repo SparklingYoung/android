@@ -2,8 +2,9 @@ package com.dip.penguin.lowpoly.activity;
 
 import android.app.Activity;
 import android.app.ActivityManager;
-import android.app.FragmentManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -18,6 +19,7 @@ import com.dip.penguin.lowpoly.utils.Utils;
 import com.dip.penguin.lowpoly.view.DialogSave;
 
 import org.opencv.android.BaseLoaderCallback;
+import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -51,10 +53,18 @@ public class LowPolyIt extends Activity implements View.OnClickListener,DialogSa
         initView();
     }
 
+
     @Override
     protected void onResume() {
         super.onResume();
-        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, getApplicationContext(), mLoaderCallback);
+        //OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, getApplicationContext(), mLoaderCallback);
+        if (!OpenCVLoader.initDebug()) {
+            //Log.d("if", "Internal OpenCV library not found. Using OpenCV Manager for initialization");
+            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, this, mLoaderCallback);
+        } else {
+            //Log.d("else", "OpenCV library found inside package. Using it!");
+            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
+        }
     }
 
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
@@ -100,12 +110,38 @@ public class LowPolyIt extends Activity implements View.OnClickListener,DialogSa
         uriSrc = Uri.parse(getIntent().getStringExtra(Constants.PATH_IMAGE));
         //根据Uri获取图片bitmap
         try {
-            bmpSrc = MediaStore.Images.Media.getBitmap(getContentResolver(),uriSrc);
+//            bmpSrc = MediaStore.Images.Media.getBitmap(getContentResolver(),uriSrc);
+            //压缩图片
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inJustDecodeBounds = true;
+            String path = Utils.getImageAbsolutePath(this,uriSrc);
+            if (path == null){
+                Toast.makeText(this,"can not load this image",Toast.LENGTH_LONG).show();
+                finish();
+            }
+            BitmapFactory.decodeFile(path,options);
+            int height = options.outHeight;
+            int width = options.outWidth;
+            int screenHeight, screenWidth;
+            int sample = 1;
+
+            screenHeight = Utils.getScreenHeight(getApplicationContext());
+            screenWidth = Utils.getScreenWidth(getApplicationContext());
+
+            if (height > 2048 || width > 2048){
+                while (height/sample > screenHeight || width/sample > screenWidth) sample *= 2;
+            }
+
+            options.inSampleSize = sample;
+            options.inJustDecodeBounds = false;
+            bmpSrc = BitmapFactory.decodeFile(path,options);
+
         }catch (Exception e){
             e.printStackTrace();
         }
         //将bitmap图片显示在imageView中
         if (bmpSrc != null){
+            //Log.e("msg","width: " + bmpSrc.getWidth() + " height: " + bmpSrc.getHeight());
             imgViewSrc.setImageBitmap(bmpSrc);
         }
     }
@@ -294,4 +330,7 @@ public class LowPolyIt extends Activity implements View.OnClickListener,DialogSa
         Log.e(tag,"系统是否处于低内存运行："+info.lowMemory);
         Log.e(tag,"当系统剩余内存低于"+info.threshold+"时就看成低内存运行");
     }
+
+
+
 }

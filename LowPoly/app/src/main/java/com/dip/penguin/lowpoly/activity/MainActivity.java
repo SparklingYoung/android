@@ -2,22 +2,17 @@ package com.dip.penguin.lowpoly.activity;
 
 
 import android.app.Activity;
-import android.app.Fragment;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
+import android.hardware.Camera;
 
 import com.dip.penguin.lowpoly.R;
 import com.dip.penguin.lowpoly.constant.Constants;
-
-import org.opencv.android.BaseLoaderCallback;
-import org.opencv.android.OpenCVLoader;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -46,24 +41,6 @@ public class MainActivity extends Activity implements View.OnClickListener{
         btnCamera.setOnClickListener(this);
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0,getApplicationContext(),mLoaderCallback);
-    }
-
-    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
-        @Override
-        public void onManagerConnected(int status) {
-            switch (status){
-                case BaseLoaderCallback.SUCCESS:
-                    Log.i(Constants.OPENCV_LOAD_TAG,"openCV成功加载");
-                    break;
-                default:
-                    break;
-            }
-        }
-    };
 
     @Override
     public void onClick(View v) {
