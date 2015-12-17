@@ -57,12 +57,9 @@ public class LowPolyIt extends Activity implements View.OnClickListener,DialogSa
     @Override
     protected void onResume() {
         super.onResume();
-        //OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, getApplicationContext(), mLoaderCallback);
         if (!OpenCVLoader.initDebug()) {
-            //Log.d("if", "Internal OpenCV library not found. Using OpenCV Manager for initialization");
             OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_0_0, this, mLoaderCallback);
         } else {
-            //Log.d("else", "OpenCV library found inside package. Using it!");
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
         }
     }
@@ -110,7 +107,6 @@ public class LowPolyIt extends Activity implements View.OnClickListener,DialogSa
         uriSrc = Uri.parse(getIntent().getStringExtra(Constants.PATH_IMAGE));
         //根据Uri获取图片bitmap
         try {
-//            bmpSrc = MediaStore.Images.Media.getBitmap(getContentResolver(),uriSrc);
             //压缩图片
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inJustDecodeBounds = true;
@@ -122,15 +118,9 @@ public class LowPolyIt extends Activity implements View.OnClickListener,DialogSa
             BitmapFactory.decodeFile(path,options);
             int height = options.outHeight;
             int width = options.outWidth;
-            int screenHeight, screenWidth;
             int sample = 1;
 
-            screenHeight = Utils.getScreenHeight(getApplicationContext());
-            screenWidth = Utils.getScreenWidth(getApplicationContext());
-
-            if (height > 2048 || width > 2048){
-                while (height/sample > screenHeight || width/sample > screenWidth) sample *= 2;
-            }
+            while (height/sample > 1024 || width/sample > 1024) sample *= 2;
 
             options.inSampleSize = sample;
             options.inJustDecodeBounds = false;
@@ -141,7 +131,6 @@ public class LowPolyIt extends Activity implements View.OnClickListener,DialogSa
         }
         //将bitmap图片显示在imageView中
         if (bmpSrc != null){
-            //Log.e("msg","width: " + bmpSrc.getWidth() + " height: " + bmpSrc.getHeight());
             imgViewSrc.setImageBitmap(bmpSrc);
         }
     }
