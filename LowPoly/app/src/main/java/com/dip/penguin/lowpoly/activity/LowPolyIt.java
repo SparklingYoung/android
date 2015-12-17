@@ -120,7 +120,7 @@ public class LowPolyIt extends Activity implements View.OnClickListener,DialogSa
             int width = options.outWidth;
             int sample = 1;
 
-            while (height/sample > 1024 || width/sample > 1024) sample *= 2;
+            while (height/sample > 2048 || width/sample > 2048) sample *= 2;
 
             options.inSampleSize = sample;
             options.inJustDecodeBounds = false;
